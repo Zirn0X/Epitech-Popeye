@@ -1,4 +1,4 @@
-# Epitech-Popeye
+# Epitech-Popeye ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 
 Project realized in the Introduction Devops Module at Epitech.
 
