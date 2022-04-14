@@ -1,0 +1,72 @@
+version: "3"
+
+services:
+
+  db:
+    image: postgres:9.4
+    restart: always
+    environment:
+      - "POSTGRES_USER=postgres"
+      - "POSTGRES_PASSWORD=password"
+      - "POSTGRES_DB=postgres"
+    networks:
+      - result-tier
+      - back-tier
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - "./schema.sql:/docker-entrypoint-initdb.d/init.sql"
+
+  poll:
+    depends_on: 
+      - redis
+    build: ./poll
+    restart: always
+    ports:
+      - 5000:80
+    networks:
+      - poll-tier
+    environment:
+      - REDIS_HOSTNAME=redis
+
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+      - poll-tier
+      - back-tier
+    environment:
+      - HOSTNAME=redis
+
+  worker:
+    depends_on: 
+      - db 
+      - redis
+    build: ./worker
+    restart: always
+    networks:
+      - back-tier
+    environment:
+      - REDIS_HOSTNAME=redis
+      - DATABASE_HOSTNAME=db
+
+  result:
+    depends_on: 
+      - db
+    build: ./result
+    restart: always
+    ports:
+      - 5001:80
+    networks:
+      - result-tier
+    environment:
+      - DATABASE_HOSTNAME=db
+
+networks:
+  poll-tier:
+  result-tier:
+  back-tier:
+
+volumes:
+  db-data:
